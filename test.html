@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PUBG ruler">
+  <meta data-hid="url" property="og:url" content="http://pubg-ruler.kro.kr/">
+  <meta data-hid="title" property="og:title" content="배그 박격포 자">
+  <meta data-hid="description" property="og:description" content="PUBG 박격포를 뿌슝빠슝">
+  <meta data-hid="image" property="og:image" content="https://i.imgur.com/ASVVwfr.jpg">
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <title>PUBG ruler</title>
+</head>
+<style>
+  body {
+    margin: 0;
+  }
+  button {
+    border: none;
+    border-radius: 10px;
+    padding: 5px 10px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #f5f5f5;
+    background-color: #a0522d    ;
+  }
+  h1 {
+    margin: 0;
+  }
+  .App {
+    overflow: hidden;
+    height: 100vh;
+    background-color: #e8ded1;
+  }
+  .title {
+    border-radius: 10px;
+    padding: 5px 10px;
+    background-color: #b3ada0;
+  }
+  .container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 1em;
+    box-sizing: border-box;
+    padding: 1em;
+    width: 100vw;
+    height: calc(100% - 4em);
+  }
+  .container > div {
+    border-radius: 10px;
+    padding: 1em;
+    background-color: #d9d2c4;
+  }
+  .main {
+    flex-grow: 2;
+  }
+  .Ruler {
+    min-width: calc(700px + 1em);
+    height: 4em;
+    background-color: #daa15c;
+  }
+  .Squares {
+    display: flex;
+    flex-direction: row;
+    padding: 0 0.5em;
+  }
+  .square:first-of-type > .graduation {
+    visibility: visible!important;
+    border-left: 1px solid white;
+    border-right: 0px solid black!important;
+    height: 2em;
+  }
+  .square:nth-of-type(2) > .graduation {
+    border-left: 1px solid black;
+  }
+  .square {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .graduation {
+    height: 0.5em;
+    border-right: 1px solid black;
+  }
+  .hide {
+    visibility: hidden;
+    /* border-color: #daa15c; */
+  }
+  .five {
+    height: 0.75em;
+  }
+  .ten {
+    height: 1.25em;
+  }
+  .fif {
+    height: 1.6em;
+  }
+  .hun {
+    height: 2em;
+    border-color: white;
+  }
+  .number {
+    position: relative; /* 부모 요소에 상대적으로 위치 설정 */
+    font-size: 1em;
+    font-weight: bold;
+    text-align: right;
+  }
+  .number > span {
+    position: absolute;
+    display: inline-block;
+    transform: rotate(90deg);
+    margin-left: -0.75em;
+  }
+  .configWrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 30%;
+  }
+  .Config {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 5px;
+  }
+  .rangeWrapper {
+    flex: 2;
+    text-align: center;
+  }
+  .range {
+    writing-mode: vertical-lr;
+    direction: rtl;
+    appearance: slider-vertical;
+    width: 16px;
+    height: 50%;
+    vertical-align: bottom;
+  }
+</style>
+<body>
+  <main id="root">
+  </main>
+  <script type="text/babel">    
+    function App() {
+      const [range, setRange] = React.useState(100);
+        return (
+            <div className="App">
+              <Ruler range={range} />
+              <div className="container">
+                <div className="main">
+                  <span>단위: m(미터)</span>
+                  <h1>PUBG Ruler</h1>
+                  <p>아래의 버튼을 눌러 여백을 제거하세요.</p>
+                  <FullScreenButton />
+                  <p>화면을 가로로 돌려주세요.</p>
+                  <p>지도의 하얀 네모칸 하나가 100m입니다.</p>
+                </div>
+                <div className="configWrapper">
+                  <div className="title"><h1>설정</h1></div>
+                  <Config range={range} setRange={setRange} />
+                </div>
+              </div>
+            </div>
+        );
+    }
+
+    function Ruler({range}) {
+      return (
+        <div
+          className="Ruler"
+          style={{
+            width: `${range}%`
+          }}
+        >
+          <Squares range={range} />
+        </div>
+      );
+    }
+
+    function Squares({range}) {
+      const rulerWidth = window.innerWidth * (range / 100);
+      const isShort = rulerWidth / 700 < 2;
+      
+      function renderSquares() {
+        const result = [];
+        for (let i = 1; i <= 700; i++) {
+          let print = false;
+          let time = '';
+          if (i % 100 == 0) {
+            time = 'hun';
+            print = true;
+          } else if (i % 50 == 0) {
+            time = 'fif';
+            print = true;
+          } else if (i % 10 == 0) {
+            time = 'ten';
+          } else if (i % 5 == 0) {
+            time = 'five';
+          } else {
+            if (isShort) {
+              time = 'hide';
+            }
+          }
+          result.push(
+            <div className="square" key={i}>
+              <div className={`graduation ${time}`}></div>
+              <div className="number" number={i}><span>{print && i}</span></div>
+            </div>
+          );
+        }
+        return result;
+      }
+
+      return (
+        <div className="Squares">
+          {renderSquares()}
+        </div>
+      );
+    }
+
+    function Config({range, setRange}) {
+
+      const [isDisabled, setIsDisabled] = React.useState(false);
+
+      function rangeHandler(e) {
+        const param = Number(e.target.value);
+        setRange(param);
+      }
+
+      function buttonHandler(e) {
+        setIsDisabled(prevState => !prevState);
+      }
+
+      return (
+        <div className="Config">
+          <div className="rangeWrapper">
+            <input
+              type="range"
+              className="range"
+              min="50"
+              max="300"
+              defaultValue={range}
+              onChange={e => rangeHandler(e)}
+              disabled={isDisabled}
+            />
+          </div>
+          <div>
+            <button onClick={e => buttonHandler(e)}>고정</button>
+          </div>
+        </div>
+      );
+    }
+
+    function FullScreenButton() {
+      const [isFullScreen, setIsFullScreen] = React.useState(false);
+      function screenHandler() {
+        if (isFullScreen) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen();
+          }
+        } else {
+          var elem = document.body;
+          if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+          } else if (elem.webkitRequestFullscreen) { /* Safari */
+            elem.webkitRequestFullscreen();
+          } else if (elem.msRequestFullscreen) { /* IE11 */
+            elem.msRequestFullscreen();
+          }
+        }
+        setIsFullScreen(prevState => !prevState);
+      }
+      return (
+        <button onClick={() => screenHandler()}>{isFullScreen? '전체화면 해제':'전체화면 시작'}</button>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(
+        <App />
+    );
+  </script>
+</body>
+</html>
